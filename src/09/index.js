@@ -30,12 +30,32 @@ const assignDelta = assign({
   },
 });
 
+const assignDeltaHorizontal = assign({
+  dx: (context, event) => {
+    return event.clientX - context.px;
+  },
+  dy: 0
+});
+
+const assignDeltaVertical = assign({
+  dy: (context, event) => {
+    return event.clientY - context.py;
+  },
+  dx: 0
+});
+
 const resetPosition = assign({
   dx: 0,
   dy: 0,
   px: 0,
   py: 0,
 });
+
+const isHorizontalChange = (context, event) => {
+  const _dx = Math.abs(event.clientX - context.px);
+  const _dy = Math.abs(event.clientY - context.py);
+  return _dx > _dy;
+}
 
 const dragDropMachine = createMachine({
   initial: 'idle',
@@ -46,6 +66,7 @@ const dragDropMachine = createMachine({
     dy: 0,
     px: 0,
     py: 0,
+    locked: false,
   },
   states: {
     idle: {
@@ -57,11 +78,33 @@ const dragDropMachine = createMachine({
       },
     },
     dragging: {
-      // Add hierarchical (nested) states here.
-      // We should have a state for normal operation
-      // that transitions to a "locked" x-axis behavior
-      // when the shift key is pressed.
-      // ...
+      initial: 'unlocked', 
+      states: {
+        unlocked: {
+          on: {
+            'keydown.shift': {
+              target: 'locked',
+              actions: assign({locked: true})
+            }
+          }
+        },
+        locked: {
+          on: {
+            'keyup.shift': {
+              target: 'unlocked',
+              actions: assign({locked: true})
+            },
+            mousemove: [
+              {
+                cond: isHorizontalChange,
+                actions: assignDeltaHorizontal
+              }, {
+                actions: assignDeltaVertical
+              }
+            ]
+          }
+        },
+      },
       on: {
         mousemove: {
           actions: assignDelta,
@@ -111,8 +154,13 @@ elBody.addEventListener('keyup', (e) => {
   if (e.key === 'Escape') {
     service.send('keyup.escape');
   }
+  if (e.key === 'Shift') {
+    service.send('keyup.shift')
+  }
 });
 
-// Add event listeners for keyup and keydown on the body
-// to listen for the 'Shift' key.
-// ...
+elBody.addEventListener('keydown', (e) => {
+  if (e.key === 'Shift') {
+    service.send('keydown.shift')
+  }
+})
