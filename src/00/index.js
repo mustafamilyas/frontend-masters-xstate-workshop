@@ -10,7 +10,7 @@ console.log('Welcome to the XState workshop!');
 
 const user = {
   name: 'David Khourshid',
-  company: 'Microsoft',
+  company: 'Microsoft tech',
   interests: ['piano', 'state machines'],
 };
 

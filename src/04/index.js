@@ -2,11 +2,6 @@ import { createMachine, interpret } from 'xstate';
 
 const elBox = document.querySelector('#box');
 
-const setPoint = (context, event) => {
-  // Set the data-point attribute of `elBox`
-  // ...
-};
-
 const machine = createMachine({
   initial: 'idle',
   states: {
@@ -14,8 +9,8 @@ const machine = createMachine({
       on: {
         mousedown: {
           // Add your action here
-          // ...
           target: 'dragging',
+          actions: ['setPoint']
         },
       },
     },
@@ -27,6 +22,14 @@ const machine = createMachine({
       },
     },
   },
+}, {
+  actions: {
+    setPoint: (context, event) => {
+      // Set the data-point attribute of `elBox`
+      console.log(context, event)
+      elBox.dataset.point = `x: ${event.clientX}, y: ${event.clientY}`
+    }
+  }
 });
 
 const service = interpret(machine);

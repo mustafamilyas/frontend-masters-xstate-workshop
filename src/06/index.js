@@ -3,40 +3,6 @@ import { createMachine, assign, interpret } from 'xstate';
 const elBox = document.querySelector('#box');
 const elBody = document.body;
 
-const assignPoint = assign({
-  px: (context, event) => event.clientX,
-  py: (context, event) => event.clientY,
-});
-
-const assignPosition = assign({
-  x: (context, event) => {
-    return context.x + context.dx;
-  },
-  y: (context, event) => {
-    return context.y + context.dy;
-  },
-  dx: 0,
-  dy: 0,
-  px: 0,
-  py: 0,
-});
-
-const assignDelta = assign({
-  dx: (context, event) => {
-    return event.clientX - context.px;
-  },
-  dy: (context, event) => {
-    return event.clientY - context.py;
-  },
-});
-
-const resetPosition = assign({
-  dx: 0,
-  dy: 0,
-  px: 0,
-  py: 0,
-});
-
 const machine = createMachine({
   initial: 'idle',
   context: {
@@ -52,33 +18,71 @@ const machine = createMachine({
     idle: {
       on: {
         mousedown: {
-          // Don't select this transition unless
-          // there are < 5 drags
-          // ...
-          actions: assignPoint,
+          cond: 'availableDrags',
+          actions: 'assignPoint',
           target: 'dragging',
         },
       },
     },
     dragging: {
-      // Whenever we enter this state, we want to
-      // increment the drags count.
-      // ...
+      entry: 'incrementDrags',
       on: {
         mousemove: {
-          actions: assignDelta,
+          actions: 'assignDelta',
         },
         mouseup: {
-          actions: [assignPosition],
+          actions: 'assignPosition',
           target: 'idle',
         },
         'keyup.escape': {
           target: 'idle',
-          actions: resetPosition,
+          actions: 'resetPosition',
         },
       },
     },
   },
+}, {
+  actions: {
+    assignPoint : assign({
+      px: (context, event) => event.clientX,
+      py: (context, event) => event.clientY,
+    }),
+
+    assignPosition : assign({
+      x: (context, event) => {
+        return context.x + context.dx;
+      },
+      y: (context, event) => {
+        return context.y + context.dy;
+      },
+      dx: 0,
+      dy: 0,
+      px: 0,
+      py: 0,
+    }),
+
+    assignDelta : assign({
+      dx: (context, event) => {
+        return event.clientX - context.px;
+      },
+      dy: (context, event) => {
+        return event.clientY - context.py;
+      },
+    }),
+
+    resetPosition : assign({
+      dx: 0,
+      dy: 0,
+      px: 0,
+      py: 0,
+      drags: (context) => context.drags - 1
+    }),
+
+    incrementDrags : assign({ drags: (context) => context.drags + 1 }),
+  },
+  guards: {
+    availableDrags: (context) => context.drags < 5
+  }
 });
 
 const service = interpret(machine);

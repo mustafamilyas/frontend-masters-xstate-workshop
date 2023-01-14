@@ -1,25 +1,45 @@
 const elBox = document.querySelector('#box');
 
-// Pure function that returns the next state,
-// given the current state and sent event
-function transition(state, event) {
-  switch (
-    state
-    // Add your state/event transitions here
-    // to determine and return the next state
-  ) {
+
+function stateMachine() {
+  const machine = {
+    initial: 'active',
+    states: {
+      active: {
+        on: {
+          toggle: 'inactive'
+        }
+      },
+      inactive: {
+        on: {
+          toggle: 'active'
+        }
+      },
+    }
+  }
+  let currentState = machine.initial;
+  // Pure function that returns the next state,
+  // given the current state and sent event
+  function transition(state, event) {
+    return machine?.states[state]?.on[event] || state
+  }
+  
+  // Keep track of your current state
+  function send(event) {
+    console.log('send')
+    // Determine the next value of `currentState`
+    currentState = transition(currentState, event)
+    elBox.dataset.state = currentState;
+  }
+
+  return {
+    send
   }
 }
 
-// Keep track of your current state
-let currentState = undefined;
-
-function send(event) {
-  // Determine the next value of `currentState`
-
-  elBox.dataset.state = currentState;
-}
+const appMachine = stateMachine();
 
 elBox.addEventListener('click', () => {
   // send a click event
+  appMachine.send('toggle')
 });

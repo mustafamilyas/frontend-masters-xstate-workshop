@@ -46,6 +46,7 @@ const dragDropMachine = createMachine({
     dy: 0,
     px: 0,
     py: 0,
+    timeoutDragging: 1000
   },
   states: {
     idle: {
@@ -71,11 +72,20 @@ const dragDropMachine = createMachine({
           actions: resetPosition,
         },
       },
-      // Transition to 'idle' after 2 seconds
-      // using a delayed transition.
-      // ...
+      after: {
+        MAX_DRAGGING_TIME: {
+          target: 'idle',
+          actions: resetPosition
+        }
+      }
     },
   },
+}, {
+  delays: {
+    MAX_DRAGGING_TIME: (context) => {
+      return context.timeoutDragging
+    }
+  }
 });
 
 const service = interpret(dragDropMachine);
