@@ -10,17 +10,52 @@ const displayMachine = createMachine({
   states: {
     hidden: {
       on: {
-        TURN_ON: 'visible',
+        TURN_ON: 'visible.hist',
       },
     },
     visible: {
-      // Add parallel states here for:
-      // - mode (light or dark)
-      // - brightness (bright or dim)
-      // See the README for how the child states of each of those
-      // parallel states should transition between each other.
+      type: 'parallel',
+      states: {
+        mode: {
+          initial: 'light',
+          states: {
+            light: {
+              on: {
+                SWITCH: 'dark'
+              }
+            },
+            dark: {
+              on: {
+                SWITCH: 'light'
+              }
+            }
+          }
+        },
+        brightness: {
+          initial: 'bright',
+          states: {
+            bright: {
+              after: {
+                BRIGHT_LIMIT: 'dim'
+              }
+            },
+            dim: {}
+          }
+        },
+        hist: {
+          type: 'history',
+          history: 'deep'
+        }
+      },
+      on: {
+        TURN_OFF: 'hidden'
+      }
     },
   },
+}, {
+  delays: {
+    BRIGHT_LIMIT: 5000
+  }
 });
 
 const displayService = interpret(displayMachine)

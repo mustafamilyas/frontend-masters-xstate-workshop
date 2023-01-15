@@ -72,7 +72,9 @@ const dragDropMachine = createMachine({
           actions: resetPosition,
         },
       },
+      // delayed transition
       after: {
+        // the key value is from options object below, inside delays object.
         MAX_DRAGGING_TIME: {
           target: 'idle',
           actions: resetPosition

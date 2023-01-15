@@ -73,6 +73,9 @@ const dragDropMachine = createMachine({
       on: {
         mousedown: {
           actions: assignPoint,
+          // we can also target child state by using dot notation
+          // below target is equal to dragging.unlocked (initial value)
+          // we can also go to dragging.locked
           target: 'dragging',
         },
       },
@@ -94,6 +97,9 @@ const dragDropMachine = createMachine({
               target: 'unlocked',
               actions: assign({locked: true})
             },
+            // xState will check this level first, if can't found that particular event, it will search on the upper level
+            // basically bubble up
+            // in this case, on dragging.locked, it will use below function
             mousemove: [
               {
                 cond: isHorizontalChange,
